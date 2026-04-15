@@ -1,214 +1,338 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bionex Health Professional</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJpb25leCBIZWFsdGggUHJvIiwKICAic2hvcnRfbmFtZSI6ICJCaW9uZXgiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIzRmYWNmZSwKICAiaWNvbnMiOiBbIHsgInNyYyI6ICJodHRwczovL3ZpYS5wbGFjZWhvbGRlci5jb20vMTkyIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9wbmciIH0gXQp9">
+    <title>Bionex Professional Health Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --p: #4facfe; --s: #00f2fe; --d: #ff4757; --glass: rgba(255, 255, 255, 0.1); }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #0f172a; color: white; min-height: 100vh; overflow-x: hidden; }
-        
-        /* Navigation */
-        .nav-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(20px); border-radius: 25px; display: flex; justify-content: space-around; padding: 15px; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
-        .nav-item { font-size: 1.4rem; cursor: pointer; opacity: 0.4; transition: 0.3s; }
-        .nav-item.active { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 8px var(--p)); }
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --accent: #f093fb;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --bg: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.07);
+        }
 
-        /* Page System */
-        .page { display: none; padding: 25px; padding-bottom: 120px; animation: slideUp 0.4s ease; }
-        .page.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui; }
 
-        /* Glass Cards */
-        .card { background: var(--glass); backdrop-filter: blur(15px); border-radius: 24px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        
-        /* Professional Alarm Overlay */
-        #alarmOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .alarm-card { background: var(--d); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 0 50px var(--d); animation: shake 0.5s infinite; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        body {
+            margin: 0;
+            background: var(--bg);
+            background: radial-gradient(circle at 0% 0%, #1a2a6c, #b21f1f, #fdbb2d); /* Medical Gradient */
+            background-attachment: fixed;
+            background-size: cover;
+            color: white;
+            min-height: 100vh;
+        }
 
-        /* Inputs */
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; border-radius: 12px; border: none; background: linear-gradient(45deg, var(--p), var(--s)); color: white; font-weight: bold; cursor: pointer; }
-        .btn-stop { background: white; color: var(--d); margin-top: 20px; font-size: 1.2rem; }
+        /* ALARM SYSTEM OVERLAY */
+        #alarmLayer {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.96);
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; z-index: 10000; backdrop-filter: blur(30px);
+        }
+        .alarm-announcement {
+            background: var(--danger); padding: 50px; border-radius: 50px;
+            text-align: center; box-shadow: 0 0 100px var(--danger);
+            animation: pulseBg 0.6s infinite alternate;
+        }
+        @keyframes pulseBg { from { transform: scale(1); } to { transform: scale(1.08); } }
+
+        /* HEADER SECTION */
+        header {
+            padding: 40px 25px 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+        }
+        .live-clock { font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; margin: 0; }
+        .live-date { font-size: 1.1rem; opacity: 0.8; font-weight: 300; text-transform: uppercase; }
+
+        /* NAVIGATION */
+        .main-nav {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 500px; background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px); border-radius: 40px;
+            display: flex; justify-content: space-around; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1); z-index: 5000;
+        }
+        .nav-btn { font-size: 1.6rem; cursor: pointer; opacity: 0.3; transition: 0.4s; }
+        .nav-btn.active { opacity: 1; transform: scale(1.3) translateY(-10px); color: var(--primary); }
+
+        /* PAGES */
+        .container { display: none; padding: 0 25px 150px; animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        .container.active { display: block; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CARDS */
+        .glass-card {
+            background: var(--card-bg); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 35px;
+            padding: 25px; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        h2 { font-size: 1.6rem; margin-top: 0; font-weight: 700; color: var(--secondary); }
+
+        /* FORMS */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; opacity: 0.7; }
+        input, select {
+            width: 100%; padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.4); color: white; font-size: 1rem; outline: none;
+        }
+        .time-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+        .btn-action {
+            width: 100%; padding: 20px; border-radius: 20px; border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; font-weight: 800; font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3); transition: 0.3s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        /* MEDICATION LIST */
+        .med-item {
+            background: rgba(255,255,255,0.05); padding: 20px; border-radius: 25px;
+            margin-bottom: 15px; border-left: 6px solid var(--accent);
+        }
+        .time-tag {
+            display: inline-block; background: var(--primary); padding: 5px 12px;
+            border-radius: 10px; font-size: 0.8rem; margin: 5px 5px 0 0; font-weight: bold;
+        }
+
+        /* ANALYTICS */
+        .chart-wrap { height: 250px; width: 100%; margin: 20px 0; }
     </style>
 </head>
 <body>
 
-    <div id="alarmOverlay">
-        <div class="alarm-card">
-            <h1 style="font-size: 4rem; margin: 0;">🔔</h1>
-            <h2>MUDA WA DAWA!</h2>
-            <p id="activeMed" style="font-size: 1.3rem; font-weight: bold;"></p>
-            <button class="btn-stop" onclick="stopAlarm()">NIMEKUNYWA / ZIMA</button>
+    <div id="alarmLayer">
+        <div class="alarm-announcement">
+            <h1 style="font-size: 6rem; margin:0">💊</h1>
+            <h2 style="color: white; font-size: 2.5rem;">MUDA WA DOZI!</h2>
+            <p id="alarmDrugName" style="font-size: 1.5rem; font-weight: 300;"></p>
+            <button onclick="deactivateAlarm()" style="width:100%; padding:25px; border-radius:25px; border:none; background:white; color:var(--danger); font-weight:900; font-size:1.4rem; cursor:pointer;">NIMEKUNYWA TAYARI</button>
         </div>
     </div>
 
-    <main>
-        <section id="home" class="page active">
-            <h1>Dashboard</h1>
-            <div class="card"><canvas id="mainChart" style="height: 180px;"></canvas></div>
-            <div class="card">
-                <h3>Health Summary</h3>
-                <p>Status: <span style="color:var(--s)">Stable</span></p>
-                <p>Next Dose: <span id="dashNextDose">--:--</span></p>
-            </div>
-        </section>
+    <header>
+        <div class="live-date" id="currentDate">Wednesday, 15 April 2026</div>
+        <div class="live-clock" id="currentTime">12:00:00</div>
+    </header>
 
-        <section id="meds" class="page">
-            <h1>Medication</h1>
-            <div class="card">
-                <h3>Add New Medicine</h3>
-                <input type="text" id="mName" placeholder="Medicine Name">
-                <input type="time" id="mTime">
-                <button onclick="saveMed()">Set Reminder</button>
+    <section id="page-dash" class="container active">
+        <div class="glass-card">
+            <h2>Medical Status</h2>
+            <div class="chart-wrap">
+                <canvas id="healthChart"></canvas>
             </div>
-            <div id="medListContainer"></div>
-        </section>
-
-        <section id="vitals" class="page">
-            <h1>Vitals</h1>
-            <div class="card">
-                <label>Blood Pressure (mmHg)</label>
-                <input type="text" placeholder="120/80">
-                <label>Weight (kg)</label>
-                <input type="number" placeholder="70">
-                <button onclick="alert('Data Saved Successfully!')">Save Vitals</button>
+            <div style="display:flex; justify-content:space-between; text-align:center">
+                <div><small>Heart Rate</small><br><strong>72 bpm</strong></div>
+                <div><small>Adherence</small><br><strong style="color:var(--success)">98%</strong></div>
+                <div><small>Alerts</small><br><strong>Active</strong></div>
             </div>
-        </section>
+        </div>
 
-        <section id="profile" class="page">
-            <h1>Profile</h1>
-            <div class="card" style="text-align: center;">
-                <div style="font-size: 5rem;">👨‍🔬</div>
-                <h2>Eng. Allan Joseph</h2>
-                <p>Biomedical Engineer | MUHAS</p>
-                <button onclick="testSystem()" style="background:rgba(255,255,255,0.1); border:1px solid white;">Test Alarm System</button>
+        <div class="glass-card" style="background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.1));">
+            <h3>Bionex AI Tip</h3>
+            <p style="font-size: 0.9rem; opacity: 0.8; line-height: 1.5;">Kunywa maji mengi baada ya kumeza dawa zako za asubuhi ili kusaidia mzunguko wa damu mwilini.</p>
+        </div>
+    </section>
+
+    <section id="page-meds" class="container">
+        <h1>Schedule</h1>
+        <div class="glass-card">
+            <h2>New Medication</h2>
+            <div class="input-group">
+                <label>Jina la Dawa</label>
+                <input type="text" id="medName" placeholder="mf: Panadol, Insulin, n.k">
             </div>
-        </section>
-    </main>
+            <div class="input-group">
+                <label>Mara ngapi kwa siku?</label>
+                <select id="doseCount" onchange="toggleTimeInputs()">
+                    <option value="1">Mara Moja (1x)</option>
+                    <option value="2">Mara Mbili (2x)</option>
+                    <option value="3">Mara Tatu (3x)</option>
+                </select>
+            </div>
+            <div id="timeInputs" class="time-grid">
+                <input type="time" id="t1">
+                <input type="time" id="t2" style="display:none">
+                <input type="time" id="t3" style="display:none">
+            </div>
+            <br>
+            <button class="btn-action" onclick="addMedication()">Save Treatment</button>
+        </div>
 
-    <nav class="nav-bar">
-        <div class="nav-item active" onclick="nav('home', this)">🏠</div>
-        <div class="nav-item" onclick="nav('meds', this)">💊</div>
-        <div class="nav-item" onclick="nav('vitals', this)">📊</div>
-        <div class="nav-item" onclick="nav('profile', this)">👤</div>
+        <div id="activeMedList"></div>
+    </section>
+
+    <section id="page-vitals" class="container">
+        <h1>Health Vitals</h1>
+        <div class="glass-card">
+            <label>Blood Pressure (mmHg)</label>
+            <input type="text" placeholder="120/80">
+            <label>Sukari (mmol/L)</label>
+            <input type="number" placeholder="5.4">
+            <br><br>
+            <button class="btn-action">Record Data</button>
+        </div>
+    </section>
+
+    <section id="page-profile" class="container">
+        <h1>Biomedical Profile</h1>
+        <div class="glass-card" style="text-align: center;">
+            <div style="font-size: 6rem; margin-bottom: 10px;">🩺</div>
+            <h2 style="margin:0">Eng. Allan Joseph</h2>
+            <p style="opacity:0.7">Biomedical Engineering Student | MUHAS</p>
+            <p style="color:var(--primary); font-weight:bold;">Founder & CEO of Bionex</p>
+            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+            <button onclick="testAlarmSystem()" style="background:none; border:1px solid var(--danger); color:var(--danger); padding:10px; border-radius:10px; cursor:pointer">Test System Emergency</button>
+        </div>
+    </section>
+
+    <nav class="main-nav">
+        <div class="nav-btn active" onclick="switchTab('page-dash', this)">🏠</div>
+        <div class="nav-btn" onclick="switchTab('page-meds', this)">💊</div>
+        <div class="nav-btn" onclick="switchTab('page-vitals', this)">📊</div>
+        <div class="nav-btn" onclick="switchTab('page-profile', this)">👤</div>
     </nav>
 
     <script>
-        let meds = JSON.parse(localStorage.getItem('bionex_final')) || [];
+        let db = JSON.parse(localStorage.getItem('bionex_ultra_v1')) || [];
         let audioCtx = null;
-        let oscillator = null;
+        let activeOsc = null;
 
-        // Navigation Engine
-        function nav(pageId, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
+        // 1. CLOCK ENGINE
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').innerText = now.toLocaleDateString('sw-TZ', options);
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString('en-GB');
+            
+            // Auto-check for alarms
+            const hourMin = now.getHours().toString().padStart(2, '0') + ":" + 
+                           now.getMinutes().toString().padStart(2, '0');
+            
+            db.forEach(med => {
+                med.times.forEach(t => {
+                    if (t === hourMin && !window.isAlarmActive) {
+                        fireAlarm(med.name);
+                    }
+                });
+            });
+        }
+        setInterval(updateClock, 1000);
+
+        // 2. NAVIGATION
+        function switchTab(id, el) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
             el.classList.add('active');
-            // Initialize Audio on first touch (Required by Browsers)
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        // Medication Logic
-        function saveMed() {
-            const name = document.getElementById('mName').value;
-            const time = document.getElementById('mTime').value;
-            if (name && time) {
-                meds.push({ name, time, id: Date.now(), active: true });
-                localStorage.setItem('bionex_final', JSON.stringify(meds));
+        // 3. MEDICATION LOGIC
+        function toggleTimeInputs() {
+            const count = document.getElementById('doseCount').value;
+            document.getElementById('t1').style.display = 'block';
+            document.getElementById('t2').style.display = count >= 2 ? 'block' : 'none';
+            document.getElementById('t3').style.display = count >= 3 ? 'block' : 'none';
+        }
+
+        function addMedication() {
+            const name = document.getElementById('medName').value;
+            const count = document.getElementById('doseCount').value;
+            let times = [];
+            for(let i=1; i<=count; i++) {
+                const val = document.getElementById('t'+i).value;
+                if(val) times.push(val);
+            }
+
+            if(name && times.length > 0) {
+                db.push({ name, times, id: Date.now() });
+                localStorage.setItem('bionex_ultra_v1', JSON.stringify(db));
                 renderMeds();
-                document.getElementById('mName').value = '';
-                alert("Reminder set for " + time);
+                alert("Ratiba imehifadhiwa!");
             }
         }
 
         function renderMeds() {
-            const container = document.getElementById('medListContainer');
-            container.innerHTML = meds.map(m => `
-                <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><strong>${m.time}</strong> - ${m.name}</div>
-                    <button onclick="deleteMed(${m.id})" style="width:auto; background:rgba(255,0,0,0.2); color:white; padding:5px 10px;">Delete</button>
+            const list = document.getElementById('activeMedList');
+            list.innerHTML = db.map(m => `
+                <div class="med-item">
+                    <div style="display:flex; justify-content:space-between">
+                        <strong>${m.name}</strong>
+                        <span onclick="deleteMed(${m.id})" style="color:var(--danger); cursor:pointer">✕</span>
+                    </div>
+                    <div>${m.times.map(t => `<span class="time-tag">🕒 ${t}</span>`).join('')}</div>
                 </div>
             `).join('');
-            if(meds.length > 0) document.getElementById('dashNextDose').innerText = meds[0].time;
         }
 
         function deleteMed(id) {
-            meds = meds.filter(m => m.id !== id);
-            localStorage.setItem('bionex_final', JSON.stringify(meds));
+            db = db.filter(x => x.id !== id);
+            localStorage.setItem('bionex_ultra_v1', JSON.stringify(db));
             renderMeds();
         }
 
-        // Professional Alarm Engine
-        function checkTime() {
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + 
-                            now.getMinutes().toString().padStart(2, '0');
+        // 4. ALARM ENGINE
+        function fireAlarm(name) {
+            window.isAlarmActive = true;
+            document.getElementById('alarmDrugName').innerText = name;
+            document.getElementById('alarmLayer').style.display = 'flex';
             
-            meds.forEach(m => {
-                if (m.time === timeStr && !window.isAlarming) {
-                    triggerAlarm(m.name);
-                }
-            });
-        }
-
-        function triggerAlarm(name) {
-            window.isAlarming = true;
-            document.getElementById('activeMed').innerText = name;
-            document.getElementById('alarmOverlay').style.display = 'flex';
-            
-            // Beep Sound Logic
             if (audioCtx) {
-                oscillator = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
-                oscillator.connect(gain);
-                gain.connect(audioCtx.destination);
-                oscillator.start();
-                window.beepLoop = setInterval(() => {
-                    gain.gain.value = gain.gain.value === 0 ? 1 : 0;
-                }, 400);
+                activeOsc = audioCtx.createOscillator();
+                let g = audioCtx.createGain();
+                activeOsc.type = 'sawtooth';
+                activeOsc.frequency.value = 880;
+                activeOsc.connect(g);
+                g.connect(audioCtx.destination);
+                activeOsc.start();
+                window.beeper = setInterval(() => { g.gain.value = g.gain.value === 0 ? 1 : 0; }, 200);
             }
-            
-            // Notification for background (Works on GitHub Pages)
-            if (Notification.permission === "granted") {
-                new Notification("Bionex Health: Muda wa Dawa!", { body: "Kunywa " + name });
-            }
-            if (navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
+            if (navigator.vibrate) navigator.vibrate([1000, 500, 1000, 500]);
         }
 
-        function stopAlarm() {
-            window.isAlarming = false;
-            document.getElementById('alarmOverlay').style.display = 'none';
-            if (oscillator) oscillator.stop();
-            clearInterval(window.beepLoop);
-            if (navigator.vibrate) navigator.vibrate(0);
+        function deactivateAlarm() {
+            window.isAlarmActive = false;
+            document.getElementById('alarmLayer').style.display = 'none';
+            if(activeOsc) activeOsc.stop();
+            clearInterval(window.beeper);
         }
 
-        function testSystem() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            triggerAlarm("Test Medicine");
+        function testAlarmSystem() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            fireAlarm("Bionex Emergency Test");
         }
 
-        // Initialize Charts
-        const ctx = document.getElementById('mainChart').getContext('2d');
+        // 5. CHART INIT
+        const ctx = document.getElementById('healthChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-                datasets: [{ data: [65, 80, 75, 95, 85, 90, 100], borderColor: '#4facfe', tension: 0.4, fill: true, backgroundColor: 'rgba(79, 172, 254, 0.1)' }]
+                labels: ['Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi', 'Jumapili'],
+                datasets: [{
+                    label: 'Adherence',
+                    data: [90, 85, 100, 95, 90, 80, 100],
+                    borderColor: '#4facfe',
+                    backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            options: { plugins: { legend: { display: false } }, scales: { y: { display: false } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { display: false }, x: { ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } } }
+            }
         });
 
-        // Background Check (Every 10 seconds)
-        setInterval(checkTime, 10000);
         renderMeds();
-        if ("Notification" in window) Notification.requestPermission();
-
     </script>
 </body>
 </html>
