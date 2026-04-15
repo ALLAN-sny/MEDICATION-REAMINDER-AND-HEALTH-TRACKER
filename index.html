@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bionex Health Professional</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJpb25leCBIZWFsdGggUHJvIiwKICAic2hvcnRfbmFtZSI6ICJCaW9uZXgiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIzRmYWNmZSwKICAiaWNvbnMiOiBbIHsgInNyYyI6ICJodHRwczovL3ZpYS5wbGFjZWhvbGRlci5jb20vMTkyIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9wbmciIH0gXQp9">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --p: #4facfe; --s: #00f2fe; --d: #ff4757; --glass: rgba(255, 255, 255, 0.1); }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #0f172a; color: white; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Navigation */
+        .nav-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(20px); border-radius: 25px; display: flex; justify-content: space-around; padding: 15px; border: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
+        .nav-item { font-size: 1.4rem; cursor: pointer; opacity: 0.4; transition: 0.3s; }
+        .nav-item.active { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 8px var(--p)); }
+
+        /* Page System */
+        .page { display: none; padding: 25px; padding-bottom: 120px; animation: slideUp 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Glass Cards */
+        .card { background: var(--glass); backdrop-filter: blur(15px); border-radius: 24px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Professional Alarm Overlay */
+        #alarmOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .alarm-card { background: var(--d); padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 0 50px var(--d); animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        /* Inputs */
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 12px; border: none; background: linear-gradient(45deg, var(--p), var(--s)); color: white; font-weight: bold; cursor: pointer; }
+        .btn-stop { background: white; color: var(--d); margin-top: 20px; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div id="alarmOverlay">
+        <div class="alarm-card">
+            <h1 style="font-size: 4rem; margin: 0;">🔔</h1>
+            <h2>MUDA WA DAWA!</h2>
+            <p id="activeMed" style="font-size: 1.3rem; font-weight: bold;"></p>
+            <button class="btn-stop" onclick="stopAlarm()">NIMEKUNYWA / ZIMA</button>
+        </div>
+    </div>
+
+    <main>
+        <section id="home" class="page active">
+            <h1>Dashboard</h1>
+            <div class="card"><canvas id="mainChart" style="height: 180px;"></canvas></div>
+            <div class="card">
+                <h3>Health Summary</h3>
+                <p>Status: <span style="color:var(--s)">Stable</span></p>
+                <p>Next Dose: <span id="dashNextDose">--:--</span></p>
+            </div>
+        </section>
+
+        <section id="meds" class="page">
+            <h1>Medication</h1>
+            <div class="card">
+                <h3>Add New Medicine</h3>
+                <input type="text" id="mName" placeholder="Medicine Name">
+                <input type="time" id="mTime">
+                <button onclick="saveMed()">Set Reminder</button>
+            </div>
+            <div id="medListContainer"></div>
+        </section>
+
+        <section id="vitals" class="page">
+            <h1>Vitals</h1>
+            <div class="card">
+                <label>Blood Pressure (mmHg)</label>
+                <input type="text" placeholder="120/80">
+                <label>Weight (kg)</label>
+                <input type="number" placeholder="70">
+                <button onclick="alert('Data Saved Successfully!')">Save Vitals</button>
+            </div>
+        </section>
+
+        <section id="profile" class="page">
+            <h1>Profile</h1>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 5rem;">👨‍🔬</div>
+                <h2>Eng. Allan Joseph</h2>
+                <p>Biomedical Engineer | MUHAS</p>
+                <button onclick="testSystem()" style="background:rgba(255,255,255,0.1); border:1px solid white;">Test Alarm System</button>
+            </div>
+        </section>
+    </main>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="nav('home', this)">🏠</div>
+        <div class="nav-item" onclick="nav('meds', this)">💊</div>
+        <div class="nav-item" onclick="nav('vitals', this)">📊</div>
+        <div class="nav-item" onclick="nav('profile', this)">👤</div>
+    </nav>
+
+    <script>
+        let meds = JSON.parse(localStorage.getItem('bionex_final')) || [];
+        let audioCtx = null;
+        let oscillator = null;
+
+        // Navigation Engine
+        function nav(pageId, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            el.classList.add('active');
+            // Initialize Audio on first touch (Required by Browsers)
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Medication Logic
+        function saveMed() {
+            const name = document.getElementById('mName').value;
+            const time = document.getElementById('mTime').value;
+            if (name && time) {
+                meds.push({ name, time, id: Date.now(), active: true });
+                localStorage.setItem('bionex_final', JSON.stringify(meds));
+                renderMeds();
+                document.getElementById('mName').value = '';
+                alert("Reminder set for " + time);
+            }
+        }
+
+        function renderMeds() {
+            const container = document.getElementById('medListContainer');
+            container.innerHTML = meds.map(m => `
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>${m.time}</strong> - ${m.name}</div>
+                    <button onclick="deleteMed(${m.id})" style="width:auto; background:rgba(255,0,0,0.2); color:white; padding:5px 10px;">Delete</button>
+                </div>
+            `).join('');
+            if(meds.length > 0) document.getElementById('dashNextDose').innerText = meds[0].time;
+        }
+
+        function deleteMed(id) {
+            meds = meds.filter(m => m.id !== id);
+            localStorage.setItem('bionex_final', JSON.stringify(meds));
+            renderMeds();
+        }
+
+        // Professional Alarm Engine
+        function checkTime() {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + 
+                            now.getMinutes().toString().padStart(2, '0');
+            
+            meds.forEach(m => {
+                if (m.time === timeStr && !window.isAlarming) {
+                    triggerAlarm(m.name);
+                }
+            });
+        }
+
+        function triggerAlarm(name) {
+            window.isAlarming = true;
+            document.getElementById('activeMed').innerText = name;
+            document.getElementById('alarmOverlay').style.display = 'flex';
+            
+            // Beep Sound Logic
+            if (audioCtx) {
+                oscillator = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                oscillator.connect(gain);
+                gain.connect(audioCtx.destination);
+                oscillator.start();
+                window.beepLoop = setInterval(() => {
+                    gain.gain.value = gain.gain.value === 0 ? 1 : 0;
+                }, 400);
+            }
+            
+            // Notification for background (Works on GitHub Pages)
+            if (Notification.permission === "granted") {
+                new Notification("Bionex Health: Muda wa Dawa!", { body: "Kunywa " + name });
+            }
+            if (navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
+        }
+
+        function stopAlarm() {
+            window.isAlarming = false;
+            document.getElementById('alarmOverlay').style.display = 'none';
+            if (oscillator) oscillator.stop();
+            clearInterval(window.beepLoop);
+            if (navigator.vibrate) navigator.vibrate(0);
+        }
+
+        function testSystem() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            triggerAlarm("Test Medicine");
+        }
+
+        // Initialize Charts
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+                datasets: [{ data: [65, 80, 75, 95, 85, 90, 100], borderColor: '#4facfe', tension: 0.4, fill: true, backgroundColor: 'rgba(79, 172, 254, 0.1)' }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false } } }
+        });
+
+        // Background Check (Every 10 seconds)
+        setInterval(checkTime, 10000);
+        renderMeds();
+        if ("Notification" in window) Notification.requestPermission();
+
+    </script>
+</body>
+</html>
